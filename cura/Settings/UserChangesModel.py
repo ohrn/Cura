@@ -91,8 +91,12 @@ class UserChangesModel(ListModel):
                 for container in containers:
                     if stack == global_stack:
 
-                        #Find default value without checking user changed settings.
-                        default_value = global_stack.getProperty(setting_key, "value", skip_container = user_changes.getId())
+                        default_value = None
+                        if len(global_stack.getContainers()) > 1:
+                            # skip first container, because it holds user changes
+                            next_container = global_stack.getContainers()[1]
+                            if next_container is not None:
+                                default_value = global_stack.getRawProperty(setting_key, "value", skip_until_container = next_container.getId())
                         if default_value is not None:
                             original_value = default_value
                             break
