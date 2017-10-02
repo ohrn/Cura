@@ -91,19 +91,19 @@ class UserChangesModel(ListModel):
                 for container in containers:
                     if stack == global_stack:
 
-                        default_value = None
-                        if len(global_stack.getContainers()) > 1:
-                            # skip first container, because it holds user changes
-                            next_container = global_stack.getContainers()[1]
-                            if next_container is not None:
-                                default_value = global_stack.getRawProperty(setting_key, "value", skip_until_container = next_container.getId())
-                        if default_value is not None:
-                            original_value = default_value
-                            if isinstance(original_value, SettingFunction):
-                                original_value = original_value(stack)
+                        skip_container = global_stack.getContainers()[1] # skip first container, because it holds user changes
+
+                        # first start to search in extruder stacks, because they can store information of material which migh override
+                        # some default settings, like "Build Plate Temperature"
+                        for stack_a in reversed(stacks):
+
+                            default_value = stack_a.getRawProperty(setting_key, "value", skip_until_container= skip_container.getId(), use_next=False)
+                            if default_value is not None:
+                                original_value = default_value
                                 break
 
-                    original_value = container.getProperty(setting_key, "value")
+                    if original_value is None:
+                        original_value = container.getProperty(setting_key, "value")
 
                     # If a value is a function, ensure it's called with the stack it's in.
                     if isinstance(original_value, SettingFunction):
