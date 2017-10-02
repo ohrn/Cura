@@ -99,7 +99,9 @@ class UserChangesModel(ListModel):
                                 default_value = global_stack.getRawProperty(setting_key, "value", skip_until_container = next_container.getId())
                         if default_value is not None:
                             original_value = default_value
-                            break
+                            if isinstance(original_value, SettingFunction):
+                                original_value = original_value(stack)
+                                break
 
                     original_value = container.getProperty(setting_key, "value")
 
