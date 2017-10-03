@@ -6,6 +6,8 @@ from cura.Settings.ExtruderManager import ExtruderManager
 from UM.Settings.ContainerRegistry import ContainerRegistry
 from UM.i18n import i18nCatalog
 from UM.Settings.SettingFunction import SettingFunction
+from UM.Logger import Logger
+from UM.Settings.ContainerStack import ContainerStack
 
 from collections import OrderedDict
 import os
@@ -58,6 +60,7 @@ class UserChangesModel(ListModel):
             if catalog.hasTranslationLoaded():
                 self._i18n_catalog = catalog
 
+
         for stack in stacks:
             # Make a list of all containers in the stack.
             containers = []
@@ -69,62 +72,64 @@ class UserChangesModel(ListModel):
             # Drop the user container.
             user_changes = containers.pop(0)
 
-            for setting_key in user_changes.getAllKeys():
-                original_value = None
+            try:
+                ContainerStack.skip_global_container_id = user_changes.getId()
 
-                # Find the category of the instance by moving up until we find a category.
-                category = user_changes.getInstance(setting_key).definition
-                while category.type != "category":
-                    category = category.parent
+                for setting_key in user_changes.getAllKeys():
+                    original_value = None
 
-                # Handle translation (and fallback if we weren't able to find any translation files.
-                if self._i18n_catalog:
-                    category_label = self._i18n_catalog.i18nc(category.key + " label", category.label)
-                else:
-                    category_label = category.label
+                    # Find the category of the instance by moving up until we find a category.
+                    category = user_changes.getInstance(setting_key).definition
+                    while category.type != "category":
+                        category = category.parent
 
-                if self._i18n_catalog:
-                    label = self._i18n_catalog.i18nc(setting_key + " label", stack.getProperty(setting_key, "label"))
-                else:
-                    label = stack.getProperty(setting_key, "label")
+                    # Handle translation (and fallback if we weren't able to find any translation files.
+                    if self._i18n_catalog:
+                        category_label = self._i18n_catalog.i18nc(category.key + " label", category.label)
+                    else:
+                        category_label = category.label
 
-                for container in containers:
-                    if stack == global_stack:
+                    if self._i18n_catalog:
+                        label = self._i18n_catalog.i18nc(setting_key + " label", stack.getProperty(setting_key, "label"))
+                    else:
+                        label = stack.getProperty(setting_key, "label")
 
-                        skip_container = global_stack.getContainers()[1] # skip first container, because it holds user changes
-
-                        # first start to search in extruder stacks, because they can store information of material which migh override
-                        # some default settings, like "Build Plate Temperature"
-                        for stack_a in reversed(stacks):
-
-                            default_value = stack_a.getRawProperty(setting_key, "value", skip_until_container= skip_container.getId(), use_next=False)
-                            if default_value is not None:
-                                original_value = default_value
+                    for container in containers:
+                        if stack == global_stack:
+                            resolve = global_stack.getProperty(setting_key, "resolve")
+                            if resolve is not None:
+                                original_value = resolve
                                 break
 
-                    if original_value is None:
                         original_value = container.getProperty(setting_key, "value")
 
-                    # If a value is a function, ensure it's called with the stack it's in.
-                    if isinstance(original_value, SettingFunction):
-                        original_value = original_value(stack)
+                        # If a value is a function, ensure it's called with the stack it's in.
+                        if isinstance(original_value, SettingFunction):
+                            original_value = original_value(stack)
 
-                    if original_value is not None:
-                        break
+                        if original_value is not None:
+                            break
 
-                item_to_add = {"key": setting_key,
-                               "label": label,
-                               "user_value": str(user_changes.getProperty(setting_key, "value")),
-                               "original_value": str(original_value),
-                               "extruder": "",
-                               "category": category_label}
+                    item_to_add = {"key": setting_key,
+                                   "label": label,
+                                   "user_value": str(user_changes.getProperty(setting_key, "value")),
+                                   "original_value": str(original_value),
+                                   "extruder": "",
+                                   "category": category_label}
 
-                if stack != global_stack:
-                    item_to_add["extruder"] = stack.getName()
+                    if stack != global_stack:
+                        item_to_add["extruder"] = stack.getName()
 
-                if category_label not in item_dict:
-                    item_dict[category_label] = []
-                item_dict[category_label].append(item_to_add)
+                    if category_label not in item_dict:
+                        item_dict[category_label] = []
+                    item_dict[category_label].append(item_to_add)
+
+            except Exception as e:
+                Logger.log("w", "Could not retrieve information for discarding settings: %s", setting_key)
+            finally:
+                # Always enable user settings
+                ContainerStack.skip_global_container_id = None
+
         for each_item_list in item_dict.values():
             item_list += each_item_list
         self.setItems(item_list)
