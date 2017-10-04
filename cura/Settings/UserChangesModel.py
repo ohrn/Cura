@@ -6,8 +6,6 @@ from cura.Settings.ExtruderManager import ExtruderManager
 from UM.Settings.ContainerRegistry import ContainerRegistry
 from UM.i18n import i18nCatalog
 from UM.Settings.SettingFunction import SettingFunction
-from UM.Logger import Logger
-from UM.Settings.ContainerStack import ContainerStack
 
 from collections import OrderedDict
 import os
@@ -60,7 +58,6 @@ class UserChangesModel(ListModel):
             if catalog.hasTranslationLoaded():
                 self._i18n_catalog = catalog
 
-
         for stack in stacks:
             # Make a list of all containers in the stack.
             containers = []
@@ -72,64 +69,62 @@ class UserChangesModel(ListModel):
             # Drop the user container.
             user_changes = containers.pop(0)
 
-            try:
-                ContainerStack.skip_global_container_id = user_changes.getId()
+            for setting_key in user_changes.getAllKeys():
+                original_value = None
 
-                for setting_key in user_changes.getAllKeys():
-                    original_value = None
+                # Find the category of the instance by moving up until we find a category.
+                category = user_changes.getInstance(setting_key).definition
+                while category.type != "category":
+                    category = category.parent
 
-                    # Find the category of the instance by moving up until we find a category.
-                    category = user_changes.getInstance(setting_key).definition
-                    while category.type != "category":
-                        category = category.parent
+                # Handle translation (and fallback if we weren't able to find any translation files.
+                if self._i18n_catalog:
+                    category_label = self._i18n_catalog.i18nc(category.key + " label", category.label)
+                else:
+                    category_label = category.label
 
-                    # Handle translation (and fallback if we weren't able to find any translation files.
-                    if self._i18n_catalog:
-                        category_label = self._i18n_catalog.i18nc(category.key + " label", category.label)
-                    else:
-                        category_label = category.label
+                if self._i18n_catalog:
+                    label = self._i18n_catalog.i18nc(setting_key + " label", stack.getProperty(setting_key, "label"))
+                else:
+                    label = stack.getProperty(setting_key, "label")
 
-                    if self._i18n_catalog:
-                        label = self._i18n_catalog.i18nc(setting_key + " label", stack.getProperty(setting_key, "label"))
-                    else:
-                        label = stack.getProperty(setting_key, "label")
+                # First try to find resolve functions
+                default_value = global_stack.getRawProperty(setting_key, "resolve", skip_user_container = True)
+                if default_value is not None:
+                    original_value = default_value
 
+                #If global does not have resolve then find a value
+                if original_value is None:
                     for container in containers:
-                        if stack == global_stack:
-                            resolve = global_stack.getProperty(setting_key, "resolve")
-                            if resolve is not None:
-                                original_value = resolve
-                                break
 
                         original_value = container.getProperty(setting_key, "value")
-
-                        # If a value is a function, ensure it's called with the stack it's in.
-                        if isinstance(original_value, SettingFunction):
-                            original_value = original_value(stack)
-
                         if original_value is not None:
                             break
 
-                    item_to_add = {"key": setting_key,
-                                   "label": label,
-                                   "user_value": str(user_changes.getProperty(setting_key, "value")),
-                                   "original_value": str(original_value),
-                                   "extruder": "",
-                                   "category": category_label}
+                 # If a value is a function, ensure it's called with the stack it's in.
+                if isinstance(original_value, SettingFunction):
 
-                    if stack != global_stack:
-                        item_to_add["extruder"] = stack.getName()
+                    #set option parameter to skip user containers, because SettingFunction class executes
+                    # "eval" function which will have this option, like extruderValue(adhesion_extruder_nr, 'adhesion_type', options)"
+                    options = {"skip_user_container": True}
+                    original_value = original_value(stack, options = options)
 
-                    if category_label not in item_dict:
-                        item_dict[category_label] = []
-                    item_dict[category_label].append(item_to_add)
+                if original_value is None:
+                    continue
 
-            except Exception as e:
-                Logger.log("w", "Could not retrieve information for discarding settings: %s", setting_key)
-            finally:
-                # Always enable user settings
-                ContainerStack.skip_global_container_id = None
+                item_to_add = {"key": setting_key,
+                               "label": label,
+                               "user_value": str(user_changes.getProperty(setting_key, "value")),
+                               "original_value": str(original_value),
+                               "extruder": "",
+                               "category": category_label}
 
+                if stack != global_stack:
+                    item_to_add["extruder"] = stack.getName()
+
+                if category_label not in item_dict:
+                    item_dict[category_label] = []
+                item_dict[category_label].append(item_to_add)
         for each_item_list in item_dict.values():
             item_list += each_item_list
         self.setItems(item_list)

@@ -583,15 +583,26 @@ class ExtruderManager(QObject):
     #
     #   \param extruder_index The index of the extruder to get the value from.
     #   \param key The key of the setting to get the value of.
+    #   \param options The dictory of custom properties
     #
     #   \return The value of the setting for the specified extruder or for the
     #   global stack if not found.
     @staticmethod
-    def getExtruderValue(extruder_index, key):
+    def getExtruderValue(extruder_index, key, options = None):
         extruder = ExtruderManager.getInstance().getExtruderStack(extruder_index)
 
         if extruder:
-            value = extruder.getRawProperty(key, "value")
+
+            skip_until_container = None
+            use_next = True
+            skip_user_container = False
+            if options and isinstance(options, dict):
+
+                if "skip_until_container" in options: skip_until_container = options["skip_until_container"]
+                if "use_next" in options: use_next = options["use_next"]
+                if "skip_user_container" in options: skip_user_container = options["skip_user_container"]
+
+            value = extruder.getRawProperty(key, "value", use_next = use_next, skip_until_container = skip_until_container, skip_user_container = skip_user_container)
             if isinstance(value, SettingFunction):
                 value = value(extruder)
         else: #Just a value from global.
