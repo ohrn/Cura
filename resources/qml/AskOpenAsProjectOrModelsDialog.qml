@@ -1,5 +1,5 @@
 // Copyright (c) 2015 Ultimaker B.V.
-// Cura is released under the terms of the LGPLv3 or higher.
+// Cura is released under the terms of the AGPLv3 or higher.
 
 import QtQuick 2.2
 import QtQuick.Controls 1.1
@@ -58,7 +58,7 @@ UM.Dialog
         }
     }
 
-    Column
+    Item
     {
         anchors.fill: parent
         anchors.leftMargin: 20 * screenScaleFactor
@@ -75,23 +75,31 @@ UM.Dialog
             wrapMode: Text.WordWrap
         }
 
-        CheckBox
-        {
-            id: rememberChoiceCheckBox
-            anchors.bottom: buttonBar.top
-            anchors.bottomMargin: UM.Theme.getSize("default_margin").heigth
-            checked: UM.Preferences.getValue("cura/choice_on_open_project") != "always_ask"
-        }
 
-        Label
-        {
-            id: checkboxTextWithNiceRendering
-            anchors.left: rememberChoiceCheckBox.right
-            anchors.bottom: rememberChoiceCheckBox.bottom
-            font: UM.Theme.getFont("default")
-            text: catalog.i18nc("@text:window", "Remember my choice")
-        }
 
+        Item
+        {
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: questionText.bottom
+            anchors.topMargin: UM.Theme.getSize("default_margin").height * 2
+
+            CheckBox
+            {
+                id: rememberChoiceCheckBox
+                checked: UM.Preferences.getValue("cura/choice_on_open_project") != "always_ask"
+            }
+
+            Label
+            {
+                id: checkboxTextWithNiceRendering
+                anchors.left: rememberChoiceCheckBox.right
+                anchors.bottom: rememberChoiceCheckBox.bottom
+                font: UM.Theme.getFont("default")
+                text: catalog.i18nc("@text:window", "Remember my choice")
+            }
+        }
 
         // Buttons
         Item
