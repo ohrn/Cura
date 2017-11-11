@@ -317,6 +317,16 @@
                     "settable_per_extruder": false,
                     "settable_per_meshgroup": false
                 },
+                "machine_gpx_type":
+                {
+                    "label": "GPX Machine Type",
+                    "description": "Machine type used when writing X3G files.",
+                    "type": "str",
+                    "default_value": "",
+                    "settable_per_mesh": false,
+                    "settable_per_extruder": false,
+                    "settable_per_meshgroup": false
+                },
                 "machine_firmware_retract":
                 {
                     "label": "Firmware Retraction",
