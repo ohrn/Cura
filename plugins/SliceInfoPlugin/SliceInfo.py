@@ -99,7 +99,11 @@ class SliceInfo(Extension):
                                              "type": extruder.material.getMetaData().get("material", ""),
                                              "brand": extruder.material.getMetaData().get("brand", "")
                                              }
-                extruder_dict["material_used"] = print_information.materialLengths[int(extruder.getMetaDataEntry("position", "0"))]
+                if print_information:
+                    extruder_dict["material_used"] = print_information.materialLengths[int(extruder.getMetaDataEntry("position", "0"))]
+                else:
+                    extruder_dict["material_used"] = "Unknown"
+
                 extruder_dict["variant"] = extruder.variant.getName()
                 extruder_dict["nozzle_size"] = extruder.getProperty("machine_nozzle_size", "value")
 
@@ -157,11 +161,18 @@ class SliceInfo(Extension):
 
                     data["models"].append(model)
 
-            print_times = print_information._print_time_message_values
-            data["print_times"] = {"travel": int(print_times["travel"].getDisplayString(DurationFormat.Format.Seconds)),
-                                   "support": int(print_times["support"].getDisplayString(DurationFormat.Format.Seconds)),
-                                   "infill": int(print_times["infill"].getDisplayString(DurationFormat.Format.Seconds)),
-                                   "total": int(print_information.currentPrintTime.getDisplayString(DurationFormat.Format.Seconds))}
+            if print_information:
+                print_times = print_information._print_time_message_values
+                data["print_times"] = {"travel": int(print_times["travel"].getDisplayString(DurationFormat.Format.Seconds)),
+                                       "support": int(print_times["support"].getDisplayString(DurationFormat.Format.Seconds)),
+                                       "infill": int(print_times["infill"].getDisplayString(DurationFormat.Format.Seconds)),
+                                       "total": int(print_information.currentPrintTime.getDisplayString(DurationFormat.Format.Seconds))}
+            else:
+                data["print_times"] = {
+                    "travel": 0,
+                    "support": 0,
+                    "infill": 0,
+                    "total": 0}
 
             print_settings = dict()
             print_settings["layer_height"] = global_container_stack.getProperty("layer_height", "value")

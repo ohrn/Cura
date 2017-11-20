@@ -1407,7 +1407,7 @@ class CuraApplication(QtApplication):
                 if not child.getDecorator(ConvexHullDecorator):
                     child.addDecorator(ConvexHullDecorator())
 
-            if node.callDecoration("isSliceable"):
+            if node.callDecoration("isSliceable") and self._volume.getBoundingBox():
                 # Only check position if it's not already blatantly obvious that it won't fit.
                 if node.getBoundingBox().width < self._volume.getBoundingBox().width or node.getBoundingBox().depth < self._volume.getBoundingBox().depth:
                     # Find node location

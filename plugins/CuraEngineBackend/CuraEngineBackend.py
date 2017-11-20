@@ -472,11 +472,26 @@ class CuraEngineBackend(QObject, Backend):
         self.processingProgress.emit(1.0)
 
         for line in self._scene.gcode_list:
-            replaced = line.replace("{print_time}", str(Application.getInstance().getPrintInformation().currentPrintTime.getDisplayString(DurationFormat.Format.ISO8601)))
-            replaced = replaced.replace("{filament_amount}", str(Application.getInstance().getPrintInformation().materialLengths))
-            replaced = replaced.replace("{filament_weight}", str(Application.getInstance().getPrintInformation().materialWeights))
-            replaced = replaced.replace("{filament_cost}", str(Application.getInstance().getPrintInformation().materialCosts))
-            replaced = replaced.replace("{jobname}", str(Application.getInstance().getPrintInformation().jobName))
+
+            print_time = "0"
+            s = "0"
+            str1 = "0"
+            str2 = "0"
+            str3 = "None"
+
+            if Application.getInstance().getPrintInformation():
+                print_time = str(Application.getInstance().getPrintInformation().currentPrintTime.getDisplayString(
+                    DurationFormat.Format.ISO8601))
+                s = str(Application.getInstance().getPrintInformation().materialLengths)
+                str1 = str(Application.getInstance().getPrintInformation().materialWeights)
+                str2 = str(Application.getInstance().getPrintInformation().materialCosts)
+                str3 = str(Application.getInstance().getPrintInformation().jobName)
+
+            replaced = line.replace("{print_time}", print_time)
+            replaced = replaced.replace("{filament_amount}", s)
+            replaced = replaced.replace("{filament_weight}", str1)
+            replaced = replaced.replace("{filament_cost}", str2)
+            replaced = replaced.replace("{jobname}", str3)
 
             self._scene.gcode_list[self._scene.gcode_list.index(line)] = replaced
 
