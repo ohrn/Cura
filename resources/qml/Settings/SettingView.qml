@@ -51,6 +51,9 @@ Item
         {
             id: globalProfileSelection
 
+            //Workaround, only used for the sidebar collapsing. Otherwise the text is still visible
+            visible: parent.width < 300 ? false: true
+
             text: generateActiveQualityText()
             enabled: !header.currentExtruderVisible || header.currentExtruderIndex > -1
             width: Math.floor(parent.width * 0.55)
