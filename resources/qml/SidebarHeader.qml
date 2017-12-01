@@ -349,7 +349,7 @@ Column
             width: Math.floor(parent.width * 0.7 + UM.Theme.getSize("sidebar_margin").width)
 
             //Workaround, only used for the sidebar collapsing. Otherwise the text is still visible
-            visible: parent.width < 300 ? false: true
+            visible: parent.width < 100 ? false: true
 
             UM.RecolorImage {
                 id: warningImage

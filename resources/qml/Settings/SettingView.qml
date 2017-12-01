@@ -52,7 +52,7 @@ Item
             id: globalProfileSelection
 
             //Workaround, only used for the sidebar collapsing. Otherwise the text is still visible
-            visible: parent.width < 300 ? false: true
+            visible: parent.width < 100 ? false: true
 
             text: generateActiveQualityText()
             enabled: !header.currentExtruderVisible || header.currentExtruderIndex > -1
@@ -235,6 +235,9 @@ Item
         anchors.left: parent.left;
         anchors.topMargin: filterContainer.visible ? UM.Theme.getSize("sidebar_margin").height : 0
         Behavior on anchors.topMargin { NumberAnimation { duration: 100 } }
+
+        //Workaround, only used for the sidebar collapsing. Otherwise the text is still visible
+        visible: parent.width < 100 ? false: true
 
         style: UM.Theme.styles.scrollview;
         flickableItem.flickableDirection: Flickable.VerticalFlick;
