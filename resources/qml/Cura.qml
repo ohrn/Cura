@@ -48,6 +48,15 @@ UM.MainWindow
         // This has been fixed for QtQuick Controls 2 since the Shortcut item has a context property.
         Cura.Actions.parent = backgroundItem
         CuraApplication.purgeWindows()
+
+
+        var sidebarCollaps = UM.Preferences.getValue("general/sidebar_collaps")
+
+        if (sidebarCollaps == true){
+            collapsSideBarAnimation.start();
+            collapsButtonArea.rightMarginValue = 0;
+            base.collapsed = true;
+        }
     }
 
     Item
@@ -415,6 +424,8 @@ UM.MainWindow
                         onClicked:
                         {
                             base.collapsed = !base.collapsed
+
+                            UM.Preferences.setValue("general/sidebar_collaps", base.collapsed);
 
                             if(base.collapsed){
                                 collapsSideBarAnimation.start()
