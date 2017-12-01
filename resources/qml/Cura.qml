@@ -19,6 +19,7 @@ UM.MainWindow
     title: catalog.i18nc("@title:window","Ultimaker Cura");
     viewportRect: Qt.rect(0, 0, (base.width - sidebar.width) / base.width, 1.0)
     property bool showPrintMonitor: false
+    property bool collapsed: false;
 
     Connections
     {
@@ -372,14 +373,60 @@ UM.MainWindow
 
                 anchors
                 {
-                    top: topbar.bottom;
+                    top: parent.top;
                     bottom: parent.bottom;
                     right: parent.right;
                 }
                 z: 1
                 width: UM.Theme.getSize("sidebar").width;
                 monitoringPrint: base.showPrintMonitor
+
+                NumberAnimation {
+                    id: collapsSideBarAnimation
+                    target: sidebar
+                    properties: "width"
+                    to: 0
+                }
+
+                NumberAnimation {
+                    id: expandSideBarAnimation
+                    target: sidebar
+                    properties: "width"
+                    to: UM.Theme.getSize("sidebar").width
+                }
             }
+
+            Rectangle
+                {
+                    property int rightMarginValue : -35
+
+                    z: 2
+                    id: collapsButtonArea
+                    anchors.right: sidebar.left
+                    anchors.rightMargin: rightMarginValue
+                    anchors.verticalCenter: topbar.verticalCenter
+                    width: 35
+                    height: UM.Theme.getSize("sidebar_header").height
+                    color: "blue"
+
+                    MouseArea
+                    {
+                        anchors.fill: parent;
+                        onClicked:
+                        {
+                            base.collapsed = !base.collapsed
+
+                            if(base.collapsed){
+                                collapsSideBarAnimation.start()
+                                collapsButtonArea.rightMarginValue = 0
+                            }
+                            else{
+                                expandSideBarAnimation.start()
+                                collapsButtonArea.rightMarginValue = -35
+                            }
+                        }
+                    }
+                }
 
             Rectangle
             {

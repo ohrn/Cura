@@ -139,7 +139,7 @@ Rectangle
                     text: control.text;
                     elide: Text.ElideRight;
                     anchors.left: parent.left;
-                    anchors.leftMargin: UM.Theme.getSize("default_margin").width * 2
+                    anchors.leftMargin: UM.Theme.getSize("default_margin").width * 2 + 35
                     anchors.right: downArrow.left;
                     anchors.rightMargin: control.rightMargin;
                     anchors.verticalCenter: parent.verticalCenter;
