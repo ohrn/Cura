@@ -388,6 +388,8 @@ UM.MainWindow
                         collapsSidebarAnimation.start();
                     }
                     collapsed = !collapsed;
+                    UM.Preferences.setValue("general/sidebar_collaps", collapsed);
+
                 }
 
                 anchors
