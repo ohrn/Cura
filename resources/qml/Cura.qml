@@ -19,7 +19,6 @@ UM.MainWindow
     title: catalog.i18nc("@title:window","Ultimaker Cura");
     viewportRect: Qt.rect(0, 0, (base.width - sidebar.width) / base.width, 1.0)
     property bool showPrintMonitor: false
-    property bool collapsed: false;
 
     Connections
     {
@@ -53,9 +52,8 @@ UM.MainWindow
         var sidebarCollaps = UM.Preferences.getValue("general/sidebar_collaps")
 
         if (sidebarCollaps == true){
-            collapsSideBarAnimation.start();
-            collapsButtonArea.rightMarginValue = 0;
-            base.collapsed = true;
+            collapsSidebarAnimation.start();
+            sidebar.collapsed = true;
         }
     }
 
@@ -380,6 +378,18 @@ UM.MainWindow
             {
                 id: sidebar;
 
+                property bool collapsed: false;
+
+                function callExpandOrCollapse(){
+
+                    if(collapsed){
+                        expandSidebarAnimation.start();
+                    }else{
+                        collapsSidebarAnimation.start();
+                    }
+                    collapsed = !collapsed;
+                }
+
                 anchors
                 {
                     top: parent.top;
@@ -391,53 +401,21 @@ UM.MainWindow
                 monitoringPrint: base.showPrintMonitor
 
                 NumberAnimation {
-                    id: collapsSideBarAnimation
+                    id: collapsSidebarAnimation
                     target: sidebar
                     properties: "width"
                     to: 0
+                    duration: 30
                 }
 
                 NumberAnimation {
-                    id: expandSideBarAnimation
+                    id: expandSidebarAnimation
                     target: sidebar
                     properties: "width"
                     to: UM.Theme.getSize("sidebar").width
+                    duration: 30
                 }
             }
-
-            Rectangle
-                {
-                    property int rightMarginValue : -35
-
-                    z: 2
-                    id: collapsButtonArea
-                    anchors.right: sidebar.left
-                    anchors.rightMargin: rightMarginValue
-                    anchors.verticalCenter: topbar.verticalCenter
-                    width: 35
-                    height: UM.Theme.getSize("sidebar_header").height
-                    color: "blue"
-
-                    MouseArea
-                    {
-                        anchors.fill: parent;
-                        onClicked:
-                        {
-                            base.collapsed = !base.collapsed
-
-                            UM.Preferences.setValue("general/sidebar_collaps", base.collapsed);
-
-                            if(base.collapsed){
-                                collapsSideBarAnimation.start()
-                                collapsButtonArea.rightMarginValue = 0
-                            }
-                            else{
-                                expandSideBarAnimation.start()
-                                collapsButtonArea.rightMarginValue = -35
-                            }
-                        }
-                    }
-                }
 
             Rectangle
             {
@@ -485,6 +463,13 @@ UM.MainWindow
                 }
             }
         }
+    }
+
+    // Expand or collapse sidebar
+    Connections
+    {
+        target: Cura.Actions.expandSidebar
+        onTriggered: sidebar.callExpandOrCollapse()
     }
 
     UM.PreferencesDialog
