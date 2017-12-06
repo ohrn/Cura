@@ -389,7 +389,6 @@ UM.MainWindow
                     }
                     collapsed = !collapsed;
                     UM.Preferences.setValue("general/sidebar_collaps", collapsed);
-
                 }
 
                 anchors
@@ -399,7 +398,7 @@ UM.MainWindow
                     right: parent.right;
                 }
                 z: 1
-                width: UM.Theme.getSize("sidebar").width;
+                width: UM.Theme.getSize("sidebar").width - resizeToolBox.changedPosition;
                 monitoringPrint: base.showPrintMonitor
 
                 NumberAnimation {
@@ -416,6 +415,42 @@ UM.MainWindow
                     properties: "width"
                     to: UM.Theme.getSize("sidebar").width
                     duration: 30
+                }
+            }
+
+            Rectangle {
+                property int changedPosition: 0 // dragged value
+                property int resizeOnClickSize: 10 // area which under hovering allows resize the sidebar
+
+                property int resizeMaxRange: 100 // max range of changing the sidebar
+                property int maxResizeXAxis: base.width - UM.Theme.getSize("sidebar").width + resizeMaxRange
+
+                id: resizeToolBox
+                z: 1
+                width: resizeOnClickSize
+                height: sidebar.height
+                color:"transparent"
+                x: base.width - UM.Theme.getSize("sidebar").width
+
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.SizeHorCursor
+                    drag.target: parent;
+                    drag.axis: "XAxis"
+                    drag.minimumX: base.width - UM.Theme.getSize("sidebar").width
+                    drag.maximumX: resizeToolBox.maxResizeXAxis
+                    drag.filterChildren: true
+                }
+                onXChanged:
+                {
+                     var sidebarWidth = UM.Theme.getSize("sidebar").width
+                     //Info: window.width == base.width
+                     var newValue =  base.width - resizeToolBox.x
+
+                     var dragValue = sidebarWidth - newValue
+                     //console.log("changeResult width   =" + dragValue)
+
+                     resizeToolBox.changedPosition = dragValue
                 }
             }
 
