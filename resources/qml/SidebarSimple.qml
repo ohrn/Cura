@@ -9,9 +9,18 @@ import QtQuick.Layouts 1.1
 import UM 1.2 as UM
 import Cura 1.2 as Cura
 
-Item
+Rectangle
 {
     id: base;
+    color:"blue"
+
+    anchors
+    {
+        left: parent.left;
+        leftMargin: UM.Theme.getSize("sidebar_margin").width
+        right: parent.right;
+    }
+
 
     signal showTooltip(Item item, point location, string text);
     signal hideTooltip();
@@ -28,28 +37,37 @@ Item
     ScrollView
     {
         visible: Cura.MachineManager.activeMachineName != "" // If no printers added then the view is invisible
-        anchors.fill: parent
+        anchors
+        {
+            top: base.top;
+            bottom: base.bottom;
+            left: base.left
+            right: base.right
+        }
         style: UM.Theme.styles.scrollview
         flickableItem.flickableDirection: Flickable.VerticalFlick
 
         Rectangle
         {
-            width: childrenRect.width
+            width:base.width;
             height: childrenRect.height
-            color: UM.Theme.getColor("sidebar")
+            color: "gold"
 
             //
             // Quality profile
             //
-            Item
+            Rectangle
             {
                 id: qualityRow
+                property bool itemCompleted: false;
+
+                color:"red"
 
                 height: UM.Theme.getSize("sidebar_margin").height
                 anchors.topMargin: UM.Theme.getSize("sidebar_margin").height
                 anchors.left: parent.left
-                anchors.leftMargin: UM.Theme.getSize("sidebar_margin").width
                 anchors.right: parent.right
+                anchors.rightMargin: UM.Theme.getSize("sidebar_margin").width
 
                 Timer
                 {
@@ -60,7 +78,18 @@ Item
                     onTriggered: Cura.MachineManager.setActiveQuality(Cura.ProfilesModel.getItem(qualitySlider.value).id)
                 }
 
-                Component.onCompleted: qualityModel.update()
+                Component.onCompleted: {
+                    itemCompleted = true
+                    qualityModel.update()
+                }
+
+                // Is used for resizing
+                onWidthChanged:{
+
+                    //call the function if the user resizes window and skip "noise" calls
+                    if(qualityRow.itemCompleted)
+                        qualityModel.update()
+                }
 
                 Connections
                 {
