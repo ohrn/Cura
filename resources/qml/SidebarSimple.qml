@@ -12,7 +12,6 @@ import Cura 1.2 as Cura
 Rectangle
 {
     id: base;
-    color:"blue"
 
     anchors
     {
@@ -29,6 +28,8 @@ Rectangle
     property variant minimumPrintTime: PrintInformation.minimumPrintTime;
     property variant maximumPrintTime: PrintInformation.maximumPrintTime;
     property bool settingsEnabled: Cura.ExtruderManager.activeExtruderStackId || machineExtruderCount.properties.value == 1
+    property var sliderDivider: 0.58
+    property var generalSliderWidth: base.width * base.sliderDivider
 
     Component.onCompleted: PrintInformation.enabled = true
     Component.onDestruction: PrintInformation.enabled = false
@@ -51,7 +52,6 @@ Rectangle
         {
             width:base.width;
             height: childrenRect.height
-            color: "gold"
 
             //
             // Quality profile
@@ -60,8 +60,6 @@ Rectangle
             {
                 id: qualityRow
                 property bool itemCompleted: false;
-
-                color:"red"
 
                 height: UM.Theme.getSize("sidebar_margin").height
                 anchors.topMargin: UM.Theme.getSize("sidebar_margin").height
@@ -163,12 +161,12 @@ Rectangle
                     }
 
                     function calculateSliderStepWidth (totalTicks) {
-                        qualityModel.qualitySliderStepWidth = totalTicks != 0 ? (base.width * 0.55) / (totalTicks) : 0
+                        qualityModel.qualitySliderStepWidth = totalTicks != 0 ? (base.width * base.sliderDivider) / (totalTicks) : 0
                     }
 
                     function calculateSliderMargins (availableMin, availableMax, totalTicks) {
                         if (availableMin == -1 || (availableMin == 0 && availableMax == 0)) {
-                            qualityModel.qualitySliderMarginRight = base.width * 0.55
+                            qualityModel.qualitySliderMarginRight = base.width * base.sliderDivider
                         } else if (availableMin == availableMax) {
                             qualityModel.qualitySliderMarginRight = (totalTicks - availableMin) * qualitySliderStepWidth
                         } else {
@@ -226,13 +224,13 @@ Rectangle
                                 // Make sure the text aligns correctly with each tick
                                 if (qualityModel.totalTicks == 0) {
                                     // If there is only one tick, align it centrally
-                                    return parseInt(((base.width * 0.55) - width) / 2)
+                                    return parseInt(((base.width * base.sliderDivider) - width) / 2)
                                 } else if (index == 0) {
-                                    return (base.width * 0.55 / qualityModel.totalTicks) * index
+                                    return (base.width * base.sliderDivider / qualityModel.totalTicks) * index
                                 } else if (index == qualityModel.totalTicks) {
-                                    return (base.width * 0.55 / qualityModel.totalTicks) * index - width
+                                    return (base.width * base.sliderDivider / qualityModel.totalTicks) * index - width
                                 } else {
-                                    return parseInt((base.width * 0.55 / qualityModel.totalTicks) * index - (width / 2))
+                                    return parseInt((base.width * base.sliderDivider / qualityModel.totalTicks) * index - (width / 2))
                                 }
                             }
                         }
@@ -243,7 +241,7 @@ Rectangle
                 Item
                 {
                     id: speedSlider
-                    width: base.width * 0.55
+                    width: base.width * base.sliderDivider
                     height: UM.Theme.getSize("sidebar_margin").height
                     anchors.right: parent.right
                     anchors.top: parent.top
@@ -253,7 +251,7 @@ Rectangle
                     Rectangle
                     {
                         id: groovechildrect
-                        width: base.width * 0.55
+                        width: base.width * base.sliderDivider
                         height: 2 * screenScaleFactor
                         color: UM.Theme.getColor("quality_slider_unavailable")
                         anchors.verticalCenter: qualitySlider.verticalCenter
@@ -457,7 +455,6 @@ Rectangle
                     anchors.top: parent.top
                     anchors.topMargin: parseInt(UM.Theme.getSize("sidebar_margin").height * 1.7)
                     anchors.left: parent.left
-                    anchors.leftMargin: UM.Theme.getSize("sidebar_margin").width
                 }
             }
 
@@ -466,9 +463,10 @@ Rectangle
                 id: infillCellRight
 
                 height: infillSlider.height + UM.Theme.getSize("sidebar_margin").height + enableGradualInfillCheckBox.visible * (enableGradualInfillCheckBox.height + UM.Theme.getSize("sidebar_margin").height)
-                width: parseInt(UM.Theme.getSize("sidebar").width * .55)
+                width: parseInt(base.width * base.sliderDivider)
 
-                anchors.left: infillCellLeft.right
+                anchors.right: parent.right
+                anchors.rightMargin: UM.Theme.getSize("sidebar_margin").width
                 anchors.top: infillCellLeft.top
                 anchors.topMargin: UM.Theme.getSize("sidebar_margin").height
 
@@ -583,7 +581,7 @@ Rectangle
                 {
                     id: infillIcon
 
-                    width: (parent.width / 5) - (UM.Theme.getSize("sidebar_margin").width)
+                    width: UM.Theme.getSize("simple_mode_infill_icon").width
                     height: width
 
                     anchors.right: parent.right
@@ -744,7 +742,6 @@ Rectangle
                 anchors.top: infillCellRight.bottom
                 anchors.topMargin: parseInt(UM.Theme.getSize("sidebar_margin").height * 1.5)
                 anchors.left: parent.left
-                anchors.leftMargin: UM.Theme.getSize("sidebar_margin").width
                 anchors.right: infillCellLeft.right
                 anchors.rightMargin: UM.Theme.getSize("sidebar_margin").width
                 anchors.verticalCenter: enableSupportCheckBox.verticalCenter
@@ -883,7 +880,6 @@ Rectangle
 
                 anchors {
                     left: parent.left
-                    leftMargin: UM.Theme.getSize("sidebar_margin").width
                     right: infillCellLeft.right
                     rightMargin: UM.Theme.getSize("sidebar_margin").width
                     verticalCenter: adhesionCheckBox.verticalCenter
@@ -966,7 +962,6 @@ Rectangle
                 {
                     id: tipsText
                     anchors.left: parent.left
-                    anchors.leftMargin: UM.Theme.getSize("sidebar_margin").width
                     anchors.right: parent.right
                     anchors.rightMargin: UM.Theme.getSize("sidebar_margin").width
                     anchors.top: parent.top
