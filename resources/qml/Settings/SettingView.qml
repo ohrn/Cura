@@ -11,7 +11,7 @@ import Cura 1.0 as Cura
 
 import "../Menus"
 
-Item
+Rectangle
 {
     id: base;
 
@@ -274,7 +274,9 @@ Item
             {
                 id: delegate
 
-                width: UM.Theme.getSize("sidebar").width;
+                anchors.right: parent.right;
+                anchors.left: parent.left;
+
                 height: provider.properties.enabled == "True" ? UM.Theme.getSize("section").height : - contents.spacing
                 Behavior on height { NumberAnimation { duration: 100 } }
                 opacity: provider.properties.enabled == "True" ? 1 : 0

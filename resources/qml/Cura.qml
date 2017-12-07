@@ -50,10 +50,14 @@ UM.MainWindow
 
 
         var sidebarCollaps = UM.Preferences.getValue("general/sidebar_collaps")
+        var sidebarResize = UM.Preferences.getValue("general/sidebar_resize")
 
         if (sidebarCollaps == true){
             collapsSidebarAnimation.start();
             sidebar.collapsed = true;
+        }
+        if (sidebarResize >= 0){
+            resizeToolBox.changedPosition = sidebarResize
         }
     }
 
@@ -395,10 +399,9 @@ UM.MainWindow
                 {
                     top: parent.top;
                     bottom: parent.bottom;
-                    right: parent.right;
-                    rightMargin: 300
-
                 }
+
+                x: base.width - sidebar.width
                 z: 1
                 width: UM.Theme.getSize("sidebar").width - resizeToolBox.changedPosition;
                 monitoringPrint: base.showPrintMonitor
@@ -406,17 +409,17 @@ UM.MainWindow
                 NumberAnimation {
                     id: collapsSidebarAnimation
                     target: sidebar
-                    properties: "width"
-                    to: 0
-                    duration: 30
+                    properties: "x"
+                    to: base.width
+                    duration: 500
                 }
 
                 NumberAnimation {
                     id: expandSidebarAnimation
                     target: sidebar
-                    properties: "width"
-                    to: UM.Theme.getSize("sidebar").width
-                    duration: 30
+                    properties: "x"
+                    to: base.width - sidebar.width
+                    duration: 500
                 }
             }
 
@@ -432,7 +435,7 @@ UM.MainWindow
                 width: resizeOnClickSize
                 height: sidebar.height
                 color:"transparent"
-                x: base.width - UM.Theme.getSize("sidebar").width
+                x: base.width - UM.Theme.getSize("sidebar").width + changedPosition
 
                 MouseArea {
                     anchors.fill: parent
@@ -453,6 +456,7 @@ UM.MainWindow
                      //console.log("changeResult width   =" + dragValue)
 
                      resizeToolBox.changedPosition = dragValue
+                     sidebarWidthChangedTimer.start()
                 }
             }
 
@@ -666,6 +670,16 @@ UM.MainWindow
         interval: 1
 
         onTriggered: preferences.getCurrentItem().createProfile()
+    }
+
+    // The time is triggered if sidebar width is changed
+    Timer
+    {
+        id: sidebarWidthChangedTimer
+        interval: 50
+        running: false
+        repeat: false
+        onTriggered: UM.Preferences.setValue("general/sidebar_resize", resizeToolBox.changedPosition);
     }
 
     // BlurSettings is a way to force the focus away from any of the setting items.
