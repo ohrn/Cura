@@ -17,7 +17,7 @@ UM.MainWindow
     id: base
     //: Cura application window title
     title: catalog.i18nc("@title:window","Ultimaker Cura");
-    viewportRect: Qt.rect(0, 0, (base.width - sidebar.width) / base.width, 1.0)
+    //viewportRect: Qt.rect(0, 0, (base.width - sidebar.width) / base.width, 1.0)
     property bool showPrintMonitor: false
 
     Connections
@@ -28,6 +28,24 @@ UM.MainWindow
                 topbar.startMonitoringPrint()
             } else {
                 topbar.stopMonitoringPrint()
+            }
+        }
+    }
+
+    onWidthChanged:
+    {
+        // If slidebar is collapsed then it should be invisible
+        // otherwise after the main_window resize the sidebar will be fully re-drawn
+        if (sidebar.collapsed){
+            if (sidebar.visible == true){
+                sidebar.visible = false
+                sidebar.initialWidth = 0
+            }
+        }
+        else{
+            if (sidebar.visible == false){
+                sidebar.visible = true
+                sidebar.initialWidth = UM.Theme.getSize("sidebar").width
             }
         }
     }
@@ -50,15 +68,16 @@ UM.MainWindow
 
 
         var sidebarCollaps = UM.Preferences.getValue("general/sidebar_collaps")
-        var sidebarResize = UM.Preferences.getValue("general/sidebar_resize")
+        //var sidebarResize = UM.Preferences.getValue("general/sidebar_resize")
 
         if (sidebarCollaps == true){
-            collapsSidebarAnimation.start();
             sidebar.collapsed = true;
+            collapsSidebarAnimation.start();
+
         }
-        if (sidebarResize >= 0){
-            resizeToolBox.changedPosition = sidebarResize
-        }
+//        if (sidebarResize >= 0){
+//            resizeToolBox.changedPosition = sidebarResize
+//        }
     }
 
     Item
@@ -383,10 +402,12 @@ UM.MainWindow
                 id: sidebar;
 
                 property bool collapsed: false;
+                property var initialWidth: UM.Theme.getSize("sidebar").width;
 
                 function callExpandOrCollapse(){
-
                     if(collapsed){
+                        sidebar.visible = true
+                        sidebar.initialWidth = UM.Theme.getSize("sidebar").width
                         expandSidebarAnimation.start();
                     }else{
                         collapsSidebarAnimation.start();
@@ -403,7 +424,7 @@ UM.MainWindow
 
                 x: base.width - sidebar.width
                 z: 1
-                width: UM.Theme.getSize("sidebar").width - resizeToolBox.changedPosition;
+                width: initialWidth;
                 monitoringPrint: base.showPrintMonitor
 
                 NumberAnimation {
@@ -423,42 +444,6 @@ UM.MainWindow
                 }
             }
 
-            Rectangle {
-                property int changedPosition: 0 // dragged value
-                property int resizeOnClickSize: 5 // area which under hovering allows resize the sidebar
-
-                property int resizeMaxRange: 100 // max range of changing the sidebar
-                property int maxResizeXAxis: base.width - UM.Theme.getSize("sidebar").width + resizeMaxRange
-
-                id: resizeToolBox
-                z: 1
-                width: resizeOnClickSize
-                height: sidebar.height
-                color:"transparent"
-                x: base.width - UM.Theme.getSize("sidebar").width + changedPosition
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.SizeHorCursor
-                    drag.target: parent;
-                    drag.axis: "XAxis"
-                    drag.minimumX: base.width - UM.Theme.getSize("sidebar").width
-                    drag.maximumX: resizeToolBox.maxResizeXAxis
-                    drag.filterChildren: true
-                }
-                onXChanged:
-                {
-                     var sidebarWidth = UM.Theme.getSize("sidebar").width
-                     //Info: window.width == base.width
-                     var newValue =  base.width - resizeToolBox.x
-
-                     var dragValue = sidebarWidth - newValue
-                     //console.log("changeResult width   =" + dragValue)
-
-                     resizeToolBox.changedPosition = dragValue
-                     sidebarWidthChangedTimer.start()
-                }
-            }
 
             Rectangle
             {
@@ -673,14 +658,14 @@ UM.MainWindow
     }
 
     // The time is triggered if sidebar width is changed
-    Timer
-    {
-        id: sidebarWidthChangedTimer
-        interval: 50
-        running: false
-        repeat: false
-        onTriggered: UM.Preferences.setValue("general/sidebar_resize", resizeToolBox.changedPosition);
-    }
+//    Timer
+//    {
+//        id: sidebarWidthChangedTimer
+//        interval: 50
+//        running: false
+//        repeat: false
+//        onTriggered: UM.Preferences.setValue("general/sidebar_resize", resizeToolBox.changedPosition);
+//    }
 
     // BlurSettings is a way to force the focus away from any of the setting items.
     // We need to do this in order to keep the bindings intact.
